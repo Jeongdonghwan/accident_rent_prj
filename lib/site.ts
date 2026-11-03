@@ -1,6 +1,6 @@
 // 사이트 설정 — 연락처·고정 링크·사업자 정보. TODO 표시는 업체 정보를 받으면 채운다.
 
-export const SITE_URL = process.env.SITE_URL || 'https://xn--sm2bt5eo6fwrp85e.com'; // 미소렌트카.com (퓨니코드)
+export const SITE_URL = process.env.SITE_URL || 'https://xn--sm2bt5eo6fpwu.kr'; // 미소렌트.kr (퓨니코드)
 export const BRAND = '미소렌트카';
 export const BRAND_EN = 'MISO RENT A CAR';
 
