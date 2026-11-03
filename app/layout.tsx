@@ -8,7 +8,7 @@ import { SITE_URL, BRAND, OFFER } from '../lib/site';
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: { default: `${BRAND} | ${OFFER.zero} · 수입차 동급 대차`, template: '%s' },
-  description: `사고 대차·수입차 렌트. ${OFFER.zero}(${OFFER.zeroNote}). 사고 차량과 같은 급으로 공업사·자택까지 배차.`,
+  description: `사고 대차·수입차 렌트. ${OFFER.zero}, 사고 차량과 같은 급으로 공업사·자택까지 배차.`,
   robots: { index: true, follow: true },
   verification: { google: 'FiVXRKvk8LWevLnJkYQlQQYCvBfCzvQyg851vCeVeQw', other: { 'naver-site-verification': '17a285745074f1d9c6dc51c7511746dba000e967' } },
   alternates: { types: { 'application/rss+xml': `${SITE_URL}/rss.xml` } },
