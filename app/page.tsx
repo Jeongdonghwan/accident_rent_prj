@@ -3,8 +3,9 @@ import Link from 'next/link';
 import { cityHubs, pagePath } from '../lib/data';
 import { BRAND, CONTACT, OFFER, SITE_URL } from '../lib/site';
 import { faqJsonLd, itemListJsonLd, ogImages } from '../lib/jsonld';
-import { Actions, ClassTable, FaultCalc, FixedLinks, HeroShot, IconArrow, Img, JsonLd, PhotoRail, SectionHead } from '../components/Common';
+import { Actions, ClassTable, FaultCalc, FixedLinks, HeroShot, IconArrow, Img, JsonLd, PhotoRail, PostList, SectionHead } from '../components/Common';
 import { PHOTOS, STEP_PHOTOS, railPhotos } from '../lib/photos';
+import { getPosts } from '../lib/blog';
 
 // 메인 canonical·RSS (layout 의 alternates 를 덮으므로 types 도 같이)
 export const metadata: Metadata = { alternates: { canonical: '/', types: { 'application/rss+xml': `${SITE_URL}/rss.xml` } }, openGraph: { type: 'website', siteName: BRAND, locale: 'ko_KR', url: '/', images: ogImages('home', BRAND) } };
@@ -25,6 +26,7 @@ const FAQ = [
 
 export default function Home() {
   const hubs = cityHubs();
+  const posts = getPosts().slice(0, 4);
   return (
     <main>
       <JsonLd data={[faqJsonLd(FAQ), itemListJsonLd(hubs.flatMap((h) => h.pages).slice(0, 30))]} />
@@ -86,6 +88,14 @@ export default function Home() {
           </div>
           <p data-reveal><Link href="/area/" className="more">전체 지역 페이지 <IconArrow /></Link></p>
         </section>
+
+        {posts.length > 0 && (
+          <section className="sec">
+            <SectionHead title="사고 뒤에 많이 묻는 것" sub="대차 기간, 렌트비 청구, 과실 비율별 부담을 글로 정리했습니다." />
+            <PostList posts={posts} />
+            <p data-reveal><Link href="/blog/" className="more">글 전체 보기 <IconArrow /></Link></p>
+          </section>
+        )}
 
         <section className="sec alt">
           <SectionHead title="자주 묻는 질문" />

@@ -4,6 +4,7 @@ import { BRAND, BRAND_EN, CONTACT, BUSINESS, LINKS, OFFER, tel, smsHref } from '
 import { CLASSES } from '../lib/compose';
 import { CLASS_PHOTO, Photo } from '../lib/photos';
 import credits from '../data/photo_credits.json';
+import { type Post, postPath } from '../lib/blog';
 // 차급 예시 사진(Wikimedia Commons CC BY-SA) 출처 표기 — 라이선스 조건
 const CREDITS = (credits.photos as { file: string; kind: string; source: string; author: string; license: string }[]).filter((c) => c.kind === 'class');
 
@@ -103,6 +104,22 @@ export const PhotoRail = ({ id, photos, kw }: { id: string; photos: Photo[]; kw:
   </>
 );
 
+// 블로그 글 목록 — 날짜 · 제목 · 한 줄 답 (메인 최근 글, /blog/ 공용)
+export const PostList = ({ posts }: { posts: Post[] }) => (
+  <ul className="post-list reveal-group">
+    {posts.map((p) => (
+      <li key={p.slug}>
+        <Link href={postPath(p)}>
+          <time dateTime={p.publishedAt}>{p.publishedAt.replace(/-/g, '.')}</time>
+          <strong>{p.title}</strong>
+          <span>{p.description}</span>
+          <IconArrow />
+        </Link>
+      </li>
+    ))}
+  </ul>
+);
+
 export const Header = () => (
   <header className="site-header">
     <div className="wrap header-inner">
@@ -110,6 +127,7 @@ export const Header = () => (
       <nav className="nav">
         <Link href="/#process">이용 절차</Link>
         <Link href="/area/">지역</Link>
+        <Link href="/blog/">블로그</Link>
         <a href={tel} className="nav-call"><IconPhone />{CONTACT.phone}</a>
       </nav>
     </div>
@@ -122,6 +140,7 @@ export const Footer = () => (
       <div>
         <strong className="foot-brand">{BRAND}</strong>
         <p>사고 대차·수입차 렌트. {OFFER.zero}({OFFER.zeroNote}).</p>
+        <p className="foot-links"><Link href="/blog/">블로그</Link><Link href="/area/">지역별 안내</Link><Link href="/#process">이용 절차</Link></p>
         {LINKS.length > 0 && <p className="foot-links">{LINKS.map((l) => <a key={l.url} href={l.url} target="_blank" rel="noopener">{l.label}</a>)}</p>}
       </div>
       <ul className="foot-info">

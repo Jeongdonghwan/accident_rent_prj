@@ -1,4 +1,4 @@
-"""OG 카드 생성: public/og/<slug>.jpg + home.jpg + area.jpg (1200x630, JPEG 80).
+"""OG 카드 생성: public/og/<slug>.jpg + home.jpg + area.jpg + blog.jpg + blog-<글 slug>.jpg (1200x630, JPEG 80).
 배경 = 차량 참고 사진(public/img, data/photo_credits.json)을 어둡게. 사진은 슬러그 해시로 고르며
 lib/photos.ts 의 heroPhoto() 와 같은 규칙 → 페이지 히어로와 og 썸네일이 같은 사진.
 글자는 가운데 630x630 안전영역(x 285~915) 안에 — 네이버가 정사각형으로 잘라 보여 준다.
@@ -44,11 +44,26 @@ def fit(title):
             if all(font(True, size).getlength(l) <= SAFE_W for l in (a, b)): return [a, b], size
     for size in range(92, 59, -4):
         if font(True, size).getlength(title) <= SAFE_W: return [title], size
-    if ' ' in title: a, b = title.rsplit(' ', 1)
+    if ' ' in title:  # 두 줄 길이가 가장 비슷한 공백에서 나눈다
+        cuts = [i for i, ch in enumerate(title) if ch == ' ']
+        k = min(cuts, key=lambda i: max(font(True, 60).getlength(title[:i]), font(True, 60).getlength(title[i + 1:])))
+        a, b = title[:k], title[k + 1:]
     else: a, b = title[:(len(title) + 1) // 2], title[(len(title) + 1) // 2:]
     for size in range(84, 43, -4):
         if all(font(True, size).getlength(l) <= SAFE_W for l in (a, b)): return [a, b], size
     return [a, b], 44
+
+def blog_posts():
+    """content/blog/*.md ('_' 로 시작하면 비공개) → [(slug, keyword 또는 title)].
+    예약 글도 미리 만든다 — 이 사이트 deploy.sh 는 make_og 를 돌리지 않고 커밋된 public/og 를 그대로 쓰므로,
+    날짜가 되어 글이 열리는 날 og 이미지가 이미 있어야 한다."""
+    out = []
+    for f in sorted((ROOT / 'content' / 'blog').glob('*.md')):
+        if f.name.startswith('_'): continue
+        head = f.read_text(encoding='utf-8').split('---', 2)[1]
+        meta = {k.strip(): v.strip().strip("'") for k, v in (l.split(':', 1) for l in head.splitlines() if ':' in l)}
+        if meta.get('slug'): out.append((meta['slug'], meta.get('keyword') or meta.get('title', ''), meta.get('title', '')))
+    return out
 
 def card(title, photo, out):
     if out.exists() and not FORCE: return 0
@@ -75,6 +90,9 @@ if __name__ == '__main__':
     od.mkdir(parents=True, exist_ok=True)
     pages = json.loads((ROOT / 'data/site-pages.json').read_text(encoding='utf-8'))['pages']
     n = card('사고 난 날,|같은 급 차로 바로', 'road-04.jpg', od / 'home.jpg') + card('지역별 사고대차 안내', 'road-05.jpg', od / 'area.jpg')
+    n += card('사고대차 안내 글', 'road-06.jpg', od / 'blog.jpg')
+    for slug, kw, title in blog_posts():  # 사진 = 글 페이지 히어로(heroPhoto('blog-<slug>', title))와 같은 규칙
+        n += card(kw, hero_photo(f'blog-{slug}', title), od / f'blog-{slug}.jpg')
     for p in pages:
         if not p.get('variantOf'):  # 변형 페이지는 대표 페이지 이미지를 쓴다
             n += card(p['kw'], hero_photo(p['slug'], p['kw']), od / f"{p['slug']}.jpg")
