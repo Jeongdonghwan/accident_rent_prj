@@ -161,6 +161,8 @@ h1, h2, h3 { letter-spacing: -0.035em; font-weight: 800; }
 .classes { margin: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 2px; background: var(--line); border: 2px solid var(--line); }
 @media (max-width: 1000px) { .classes { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 560px) { .classes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.classes.n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 560px) { .classes.n3 { grid-template-columns: 1fr; } }
 .classes > div { background: #ffffff; padding: 0 0 16px; display: flex; flex-direction: column; gap: 3px; position: relative; }
 .classes > div.on::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--amber); }
 .cls-img { margin: 0 0 12px; aspect-ratio: 16 / 10; overflow: hidden; background: var(--steel); }

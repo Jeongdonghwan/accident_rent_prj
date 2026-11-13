@@ -78,9 +78,9 @@ export const HeroShot = ({ p, kw }: { p: Photo; kw: string }) => (
   </div>
 );
 
-export const ClassTable = ({ on = [] as string[], kw = '사고대차' }) => (
-  <dl className="classes reveal-group">
-    {CLASSES.map((c) => (
+export const ClassTable = ({ on = [] as string[], kw = '사고대차', rows }: { on?: string[]; kw?: string; rows?: string[] }) => (
+  <dl className={`classes reveal-group${rows ? ' n3' : ''}`}>
+    {CLASSES.filter((c) => !rows || rows.includes(c.key)).map((c) => (
       <div key={c.key} className={on.includes(c.key) ? 'on' : ''}>
         <figure className="cls-img"><Img p={CLASS_PHOTO[c.key]} kw={`${c.cls} ${kw}`} /></figure>
         <dt>{c.cls}</dt><dd>{c.ex}</dd><span>동급 배차</span>

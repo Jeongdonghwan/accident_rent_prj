@@ -56,7 +56,7 @@ export default function KeywordPage({ params }: { params: { slug: string } }) {
         </section>
 
         <section className="sec alt">
-          <SectionHead title={c.faultHeading} sub="막대를 움직여 보세요. 금액이 아니라 렌트비를 나누는 비율입니다." />
+          <SectionHead title={c.faultHeading} sub={c.subs.fault} />
           <FaultCalc note={c.faultNote} />
         </section>
 
@@ -68,10 +68,12 @@ export default function KeywordPage({ params }: { params: { slug: string } }) {
           </div>
         </section>
 
+        {c.blocks.includes('class') && (
         <section className="sec alt">
-          <SectionHead title={c.classHeading} sub="사고 차량과 같은 급이 기준입니다. 아래는 차급 예시이며 실제 배차 차종은 접수 때 안내합니다." />
-          <ClassTable on={c.classOn} kw={p.kw} />
+          <SectionHead title={c.classHeading} sub={c.subs.cls} />
+          <ClassTable on={c.classOn} rows={c.classRows} kw={p.kw} />
         </section>
+        )}
       </div>
 
       <section className="cta-band" data-reveal>
@@ -82,21 +84,21 @@ export default function KeywordPage({ params }: { params: { slug: string } }) {
       </section>
 
       <div className="wrap content">
-        <section className="sec" id="process">
+        {c.blocks.includes('steps') && <section className="sec" id="process">
           <SectionHead title="접수부터 반납까지" />
           <ol className="timeline reveal-group">{c.steps.map((st, i) => <li key={st.t}><strong>{st.t}</strong><p>{st.d}</p><figure className="tl-img"><Img p={STEP_PHOTOS[i % STEP_PHOTOS.length]} kw={`${p.region} ${st.t}`} /></figure></li>)}</ol>
-        </section>
+        </section>}
 
-        <section className="sec">
+        {c.blocks.includes('cases') && <section className="sec">
           <SectionHead title={c.casesHeading} />
           <ol className="cases reveal-group">{c.cases.map((x) => <li key={x.t}>{CASE_PHOTO[x.t] && <figure className="case-img"><Img p={CASE_PHOTO[x.t]} kw={`${p.region} ${x.t}`} /></figure>}<h3>{x.t}</h3><p>{x.d}</p></li>)}</ol>
-        </section>
+        </section>}
 
       </div>
 
       <section className="photo-band">
         <div className="wrap">
-          <SectionHead title={`${p.region} ${p.word} 차량 이미지`} sub="세단·SUV·수입차가 도로와 공업사를 오가는 장면입니다. 참고 이미지이며 실제 배차 차량과 다를 수 있습니다." />
+          <SectionHead title={`${p.region} ${p.word} 차량 이미지`} sub={c.subs.photo} />
           <PhotoRail id="rail-kw" photos={railPhotos(p.slug, 8, hero)} kw={p.kw} />
         </div>
       </section>
@@ -109,13 +111,13 @@ export default function KeywordPage({ params }: { params: { slug: string } }) {
           </section>
         )}
 
-        <section className="sec">
+        {c.blocks.includes('checks') && <section className="sec">
           <SectionHead title="접수 전에 확인할 것" />
           <div className="lists" data-reveal>
             <div><h3>준비할 것</h3><ul className="check">{c.checks.map((x) => <li key={x}>{x}</li>)}</ul></div>
             <div><h3>자주 놓치는 점</h3><ul className="warn">{c.pitfalls.map((x) => <li key={x}>{x}</li>)}</ul></div>
           </div>
-        </section>
+        </section>}
 
         <section className="sec alt" id="faq">
           <SectionHead title="자주 묻는 질문" />

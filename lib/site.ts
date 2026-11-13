@@ -31,7 +31,7 @@ export const OFFER = {
   free: ['배차·탁송 무료', '보험 접수 대행 무료'], // TODO: 실제 제공 여부 확인
 };
 
-export const OPEN_WAVE = Number(process.env.OPEN_WAVE || 4); // 1~4 묶음 누적 공개 (scripts/deploy.sh <묶음> <URL>)
+export const OPEN_WAVE = Number(process.env.OPEN_WAVE || 4); // 1~4 묶음 누적 공개, 5~7 = 추가 동네 페이지(11/15·11/17·11/19, scripts/add_extra_pages.py) (scripts/deploy.sh <묶음> <URL>)
 export const MERGE_VARIANTS = true;
 
 export const tel = `tel:${CONTACT.phone.replace(/[^0-9]/g, '')}`;
