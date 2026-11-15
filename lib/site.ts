@@ -32,6 +32,7 @@ export const OFFER = {
 };
 
 export const OPEN_WAVE = Number(process.env.OPEN_WAVE || 4); // 1~4 묶음 누적 공개, 5~7 = 추가 동네 페이지(11/15·11/17·11/19, scripts/add_extra_pages.py) (scripts/deploy.sh <묶음> <URL>)
+export const UPDATED = '2026-11-16'; // content revision date - bump when page text changes
 export const MERGE_VARIANTS = true;
 
 export const tel = `tel:${CONTACT.phone.replace(/[^0-9]/g, '')}`;

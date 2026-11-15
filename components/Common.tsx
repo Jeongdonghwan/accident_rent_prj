@@ -1,6 +1,6 @@
 // 사고대차 공통 UI — 각진 버튼, 선 아이콘, 섹션 머리, 과실 비율 계산기, 차급 스트립, 고정 링크 띠.
 import Link from 'next/link';
-import { BRAND, BRAND_EN, CONTACT, BUSINESS, LINKS, OFFER, tel, smsHref } from '../lib/site';
+import { BRAND, BRAND_EN, CONTACT, BUSINESS, LINKS, OFFER, UPDATED, tel, smsHref } from '../lib/site';
 import { CLASSES } from '../lib/compose';
 import { CLASS_PHOTO, Photo } from '../lib/photos';
 import credits from '../data/photo_credits.json';
@@ -140,7 +140,7 @@ export const Footer = () => (
       <div>
         <strong className="foot-brand">{BRAND}</strong>
         <p>사고 대차·수입차 렌트. {OFFER.zero}({OFFER.zeroNote}).</p>
-        <p className="foot-links"><Link href="/blog/">블로그</Link><Link href="/area/">지역별 안내</Link><Link href="/#process">이용 절차</Link></p>
+        <p className="foot-links"><Link href="/about/">소개</Link><Link href="/blog/">블로그</Link><Link href="/area/">지역별 안내</Link><Link href="/#process">이용 절차</Link></p>
         {LINKS.length > 0 && <p className="foot-links">{LINKS.map((l) => <a key={l.url} href={l.url} target="_blank" rel="noopener">{l.label}</a>)}</p>}
       </div>
       <ul className="foot-info">
@@ -153,7 +153,7 @@ export const Footer = () => (
         {BUSINESS.address && <li><span>주소</span>{BUSINESS.address}</li>}
       </ul>
     </div>
-    <div className="wrap foot-bottom">© {new Date().getFullYear()} {BRAND} · 보험 처리 여부와 본인 부담은 과실 비율과 보험사 판단에 따라 달라질 수 있습니다.
+    <div className="wrap foot-bottom">© {new Date().getFullYear()} {BRAND} · 보험 처리 여부와 본인 부담은 과실 비율과 보험사 판단에 따라 달라질 수 있습니다. · 최종 수정 <time dateTime={UPDATED}>{UPDATED}</time>
       <p className="foot-credit">차량 사진은 차급 예시(업체 보유 차량 아님) · Unsplash, Wikimedia Commons{' '}
         {CREDITS.map((c, i) => <span key={c.file}>{i ? ' · ' : '('}<a href={c.source} target="_blank" rel="noopener nofollow">{c.author}</a>, {c.license}{i === CREDITS.length - 1 ? ')' : ''}</span>)}
       </p>
