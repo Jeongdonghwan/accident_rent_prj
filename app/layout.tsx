@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: { default: `${BRAND} | ${OFFER.zero} · 수입차 동급 대차`, template: '%s' },
   description: `사고 대차·수입차 렌트. ${OFFER.zero}, 사고 차량과 같은 급으로 공업사·자택까지 배차.`,
-  robots: { index: true, follow: true },
+  robots: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
   verification: { google: 'FiVXRKvk8LWevLnJkYQlQQYCvBfCzvQyg851vCeVeQw', other: { 'naver-site-verification': '17a285745074f1d9c6dc51c7511746dba000e967' } },
   alternates: { types: { 'application/rss+xml': `${SITE_URL}/rss.xml` } },
   openGraph: { type: 'website', siteName: BRAND, locale: 'ko_KR', images: ogImages('home', BRAND) },
@@ -28,6 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Footer />
         <StickyBar />
         <Motion />
+        <script dangerouslySetInnerHTML={{ __html: "document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(!a)return;var h=a.getAttribute('href')||'',k=h.indexOf('tel:')===0?'tel':h.indexOf('sms:')===0?'sms':/kakao/.test(h)?'kakao':'';if(k&&navigator.sendBeacon)navigator.sendBeacon('/_t?e='+k+'&p='+encodeURIComponent(location.pathname))},true)" }} />
       </body>
     </html>
   );

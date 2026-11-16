@@ -1,4 +1,4 @@
-import { SITE_URL, BRAND, CONTACT, BUSINESS, LINKS } from './site';
+import { SITE_URL, UPDATED, BRAND, CONTACT, BUSINESS, LINKS } from './site';
 
 export const businessJsonLd = () => ({
   '@context': 'https://schema.org',
@@ -20,7 +20,7 @@ export const faqJsonLd = (faqs: { q: string; a: string }[]) => ({
 });
 export const serviceJsonLd = (o: { name: string; description: string; path: string; area: string }) => ({
   '@context': 'https://schema.org', '@type': 'Service', serviceType: o.name, description: o.description, url: `${SITE_URL}${o.path}`,
-  areaServed: { '@type': 'Place', name: o.area }, provider: { '@id': `${SITE_URL}/#business` },
+  areaServed: { '@type': 'Place', name: o.area }, provider: { '@id': `${SITE_URL}/#business` }, dateModified: UPDATED,
 });
 
 // og 카드 (scripts/make_og.py 가 public/og/<name>.jpg 생성)
