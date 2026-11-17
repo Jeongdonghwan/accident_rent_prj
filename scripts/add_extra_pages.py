@@ -22,9 +22,11 @@ PAGES = os.path.join(ROOT, 'data', 'site-pages.json')
 GEO = os.path.join(ROOT, '..', 'region_kw_prj', 'data', 'hjd_20261001.geojson')
 XLSX = os.path.join(ROOT, 'keywords', '미소렌트_추가키워드.xlsx')
 DOMAIN = 'https://미소렌트.kr'
-DATES = {5: '2026-11-15', 6: '2026-11-17', 7: '2026-11-19'}
+DATES = {x['wave']: x['date'] for x in json.load(open(os.path.join(ROOT, 'data', 'drip.json'), encoding='utf-8'))['extra']}
 WORDS = ['렌트카', '사고대차']
 TARGET = 1500
+MORE = 2000   # 2026-11-17 추가분(wave 8~11, 500개씩): 남은 동네의 사고렌트카 → 수입차사고대차 → 수입차렌트카 → 사고대차렌트카 순
+MORE_WORDS = ['수입차사고대차', '수입차렌트카', '사고대차렌트카']
 
 data = json.load(open(PAGES, encoding='utf-8'))
 pages = [p for p in data['pages'] if p['wave'] <= 4]
@@ -78,7 +80,9 @@ new = [dict(c, word=w) for c in cands for w in WORDS]
 by_city = defaultdict(list)
 for c in cands: by_city[c['city']].append(c)
 rr = [lst[i] for i in range(max(map(len, by_city.values()))) for lst in sorted(by_city.values(), key=lambda l: city_rank[l[0]['city']]) if i < len(lst)]
-new += [dict(c, word='사고렌트카') for c in rr[:TARGET - len(new)]]
+k = TARGET - len(new)
+new += [dict(c, word='사고렌트카') for c in rr[:k]]
+new += ([dict(c, word='사고렌트카') for c in rr[k:]] + [dict(c, word=w) for w in MORE_WORDS for c in rr])[:MORE]
 
 out = []
 for c in new:
@@ -88,10 +92,9 @@ for c in new:
     have.add(slug)
     out.append(dict(kw=kw, slug=slug, word=c['word'], region=c['place'], level='동', city=c['city'], sido=sido_of[c['city']], gu=c['gu']))
 rank = max(p['rank'] for p in pages)
-third = -(-len(out) // 3)
 for i, p in enumerate(out):
     p['rank'] = rank + 1 + i
-    p['wave'] = 5 + i // third
+    p['wave'] = 5 + i // 500
 data['pages'] = pages + [{k: p[k] for k in ('rank', 'kw', 'slug', 'word', 'region', 'level', 'city', 'sido', 'gu', 'wave')} for p in out]
 json.dump(data, open(PAGES, 'w', encoding='utf-8'), ensure_ascii=False, indent=0)
 
@@ -104,7 +107,7 @@ ws.title = '키워드'
 ws.append(['순번', '키워드', 'URL', '우선순위', '오픈 묶음', '오픈일'])
 TIER = {5: '높음', 6: '보통', 7: '낮음'}
 for i, p in enumerate(out, 1):
-    ws.append([i, p['kw'], f"{DOMAIN}/{p['slug']}/", TIER[p['wave']], p['wave'], DATES[p['wave']]])
+    ws.append([i, p['kw'], f"{DOMAIN}/{p['slug']}/", TIER.get(p['wave'], '낮음'), p['wave'], DATES[p['wave']]])
 for c in ws[1]: c.font = Font(bold=True)
 for i, w in enumerate([7, 26, 50, 9, 9, 12], 1): ws.column_dimensions[get_column_letter(i)].width = w
 ws.freeze_panes = 'A2'
