@@ -36,12 +36,12 @@ export function cityHubs() {
   return order.map((sido) => ({ sido, pages: hubs.filter((p) => p.sido === sido) })).filter((g) => g.pages.length);
 }
 
-export function related(p: Page) {
+export function related(p: Page, n = 12) {
   const pool = OPEN_PAGES.filter((x) => x.slug !== p.slug && !x.variantOf);
   const rot = <T,>(arr: T[], n: number) => { if (!arr.length) return arr; const k = hash(p.slug) % arr.length; return [...arr.slice(k), ...arr.slice(0, k)].slice(0, n); };
   return {
-    samePlace: pool.filter((x) => x.region === p.region || (!!p.gu && x.region === p.gu)).slice(0, 12),
-    sameCity: rot(pool.filter((x) => x.city === p.city && x.region !== p.region && x.word === p.word), 12),
-    otherCities: rot(pool.filter((x) => x.city !== p.city && x.word === p.word && x.level === '시' && x.sido === p.sido), 8),
+    samePlace: pool.filter((x) => x.region === p.region || (!!p.gu && x.region === p.gu)).slice(0, n),
+    sameCity: rot(pool.filter((x) => x.city === p.city && x.region !== p.region && x.word === p.word), n),
+    otherCities: rot(pool.filter((x) => x.city !== p.city && x.word === p.word && x.level === '시' && x.sido === p.sido), n > 5 ? 8 : 3),
   };
 }

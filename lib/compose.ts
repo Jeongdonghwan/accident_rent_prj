@@ -21,21 +21,24 @@ export const CLASSES = [
   { cls: '수입 대형·SUV', ex: 'BMW X5·벤츠 GLE·S클래스급', key: 'impL' },
 ];
 
-export function compose(p: Page) {
+// alt=true(레이 구조 본문, lib/ray.ts): 해시 윗비트로 고른다 — FNV 아랫비트는 슬러그가 비슷한 페이지끼리 같은 쪽을 골라 같은 문장이 늘어남. title 은 그대로.
+export function compose(p: Page, alt = false) {
+  const pk = alt ? <T,>(arr: T[], s: string, salt: string) => arr[(hash(`${s}::${salt}`) >>> 15) % arr.length] : pick;
+  const rot = alt ? <T,>(arr: T[], s: string, salt: string) => { if (!arr.length) return arr; const k = (hash(`${s}::${salt}`) >>> 15) % arr.length; return [...arr.slice(k), ...arr.slice(0, k)]; } : rotate;
   const s = p.slug;
   const t = topicOf(p.word);
   const c = cityOf(p);
   const place = p.region;
   const label = p.word;
   const isGu = p.level === '구';
-  const spot = pick(c.spots, s, 'spot');
+  const spot = pk(c.spots, s, 'spot');
   const isDong = p.level === '동';
   const bare = (x: string) => (x.startsWith(`${p.city} `) ? x.slice(p.city.length + 1) : x); // '대전 서구' → '서구'
   const gu = p.gu ? bare(p.gu) : '';
   const loc = `${c.name}${gu ? ` ${gu}` : ''}`; // 동 페이지 소속: '대전광역시 서구'
   const districts = isDong
-    ? rotate(dongsNear(p), s, 'dist').slice(0, 3).map(bare)
-    : rotate(districtsOf(p.city).filter((d) => d !== place), s, 'dist').slice(0, 3);
+    ? rot(dongsNear(p), s, 'dist').slice(0, 3).map(bare)
+    : rot(districtsOf(p.city).filter((d) => d !== place), s, 'dist').slice(0, 3);
 
   // ---- 메타 ----
   const title = pick([
@@ -46,9 +49,9 @@ export function compose(p: Page) {
   const description = `${place} ${label}. ${OFFER.zero}(${OFFER.zeroNote}). ${c.roads.split(/[,]/)[0]} 인근 ${spot}까지 배차. ${CONTACT.hours} ${CONTACT.phone}.`;
 
   // ---- 리드 ----
-  const lead = pick([
+  const lead = pk([
     `${place}에서 사고가 났다면 수리 맡기는 날 바로 같은 급 차를 받으세요. 상대 보험으로 처리되면 렌트비는 0원입니다.`,
-    `${c.name} ${spot}·${pick(c.spots.filter((x) => x !== spot), s, 'sp2')} 어디든 정비소나 집으로 차를 가져다 드립니다. ${OFFER.zero}.`,
+    `${c.name} ${spot}·${pk(c.spots.filter((x) => x !== spot), s, 'sp2')} 어디든 정비소나 집으로 차를 가져다 드립니다. ${OFFER.zero}.`,
     `${label} 상담은 사고 접수번호 하나면 시작됩니다. 과실 비율에 따라 본인 부담이 달라지니 먼저 확인해 드립니다.`,
     `${place} 공업사에 차를 맡기는 날, 사고 차량과 같은 급으로 대차를 맞춥니다. 상대 과실이 분명하면 렌트비는 상대 보험사 몫입니다.`,
     `수리 기간 동안 탈 차를 ${place}까지 보내 드립니다. 차종·연식만 알려주시면 동급 기준을 먼저 정해 드립니다.`,
@@ -105,15 +108,15 @@ export function compose(p: Page) {
     외제차렌트카: [`외제차렌트카를 찾는 이유가 사고라면 비용을 낼 필요가 없을 수 있습니다. 상대 과실 사고인지부터 봅니다.`, `외제차렌트카는 운전자 나이·경력 조건이 국산차보다 엄격한 경우가 많습니다.`, `${place} 외제차렌트카 상담은 차급과 이용 기간을 먼저 정하고, 그다음 보험 조건을 맞추는 순서로 진행합니다.`],
     렌트카: [`렌트카는 사고 대차와 일반 렌트로 나뉩니다. ${place}에서 사고 때문에 찾는다면 보험 대차로 안내합니다.`, `렌트카 비용을 먼저 묻기 전에, 상대 과실 사고인지 확인해 보세요. 사고 대차면 고객 부담이 없을 수 있습니다.`, `${place} 렌트카 문의는 크게 둘입니다. 사고로 내 차가 공업사에 들어간 경우와 출장·여행처럼 잠깐 차가 필요한 경우입니다.`, `사고가 아닌 일반 렌트라면 이용 날짜, 운전자 나이, 면허 경력을 먼저 알려주세요. 그 조건으로 보험과 차종이 정해집니다.`],
   };
-  const [i1, i2] = rotate(P1[t], s, 'p1');
-  const DONG = isDong ? pick([
+  const [i1, i2] = rot(P1[t], s, 'p1');
+  const DONG = isDong ? pk([
     `${j(place, '은')} ${loc}에 속한 동네입니다. ${districts.length ? `같은 ${gu || '시'} 안의 ${districts.join('·')}까지 배차 기준이 같고, ` : ''}공업사가 ${c.name} 다른 쪽에 있어도 원하는 곳으로 차를 둡니다.`,
     `${loc} ${bare(place)}에서 사고가 나면 가까운 공업사에 입고하는 날로 대차 일정을 잡습니다. ${districts.length ? `${districts.join('·')}처럼 ${gu || c.name} 안의 다른 동네도 같은 방식입니다.` : ''}`.trim(),
     `${bare(place)} 주민이라면 집 앞 배차와 공업사 배차 중 편한 쪽을 고르면 됩니다. ${j(c.name, '은')} ${j(c.homes, '이')} 섞여 있어, 주차 위치를 접수 때 같이 알려주시면 좋습니다.`,
-    `${bare(place)}에서 ${pick(c.spots, s, 'dsp')} 쪽 공업사에 차를 맡겨도, 대차는 ${bare(place)} 집 앞으로 받을 수 있습니다. 받는 곳과 반납하는 곳을 따로 정해도 됩니다.`,
+    `${bare(place)}에서 ${pk(c.spots, s, 'dsp')} 쪽 공업사에 차를 맡겨도, 대차는 ${bare(place)} 집 앞으로 받을 수 있습니다. 받는 곳과 반납하는 곳을 따로 정해도 됩니다.`,
     `${gu ? `${gu} ` : ''}${bare(place)} 접수는 동 이름과 공업사 이름만 알면 배차 위치가 정해집니다. ${districts.length > 1 ? `${districts[0]}·${districts[districts.length - 1]} 쪽 공업사여도 마찬가지입니다.` : ''}`.trim(),
   ], s, 'dong') : '';
-  const intro = [pick(ANGLE[p.word] || P1[t], s, 'ang'), DONG, i1, pick(P2, s, 'p2'), i2].filter(Boolean);
+  const intro = [pk(ANGLE[p.word] || P1[t], s, 'ang'), DONG, i1, pk(P2, s, 'p2'), i2].filter(Boolean);
 
   // 사고 유형별 처리 (도시 도로·생활권을 섞어 페이지마다 다르게)
   const CASES = [
@@ -124,21 +127,21 @@ export function compose(p: Page) {
     { t: '단독·자차 사고', d: `상대가 없는 단독 사고는 대물배상 대차가 아니어서, ${place}에서도 자차 특약이나 일반 렌트로 안내합니다.` },
     { t: '후진 중 접촉', d: `${spot} 쪽 골목·주차장 후진 사고는 블랙박스와 주변 CCTV로 과실을 가립니다. 과실이 정해지는 동안에도 대차를 먼저 받을 수 있는지 상담합니다.` },
     { t: '교차로 좌회전 사고', d: `${c.name} 교차로 비보호 좌회전 사고는 직진 차량과 과실이 나뉘는 일이 많습니다. 예상 과실을 들은 뒤 차급을 정합니다.` },
-    { t: '주차된 내 차 피해', d: `${pick(c.spots, s, 'sp3')} 쪽 주차 중 피해도 가해 차량이 확인되면 상대 과실 처리로 대차를 받을 수 있습니다.` },
+    { t: '주차된 내 차 피해', d: `${pk(c.spots, s, 'sp3')} 쪽 주차 중 피해도 가해 차량이 확인되면 상대 과실 처리로 대차를 받을 수 있습니다.` },
   ];
-  const cases = rotate(CASES, s, 'cases').slice(0, 4);
+  const cases = rot(CASES, s, 'cases').slice(0, 4);
   const BUYER = [
     '전화 후 차가 오기까지 걸리는 시간', '사고 차량과 같은 급 차량을 실제로 보유하는지', '보험사 청구를 업체가 직접 하는지',
     '대차 기간 연장 시 보험사 협의를 해주는지', '반납 장소를 공업사로 할 수 있는지', '자동차대여사업 등록 업체인지',
   ];
-  const buyer = /업체/.test(p.word) ? rotate(BUYER, s, 'buy').slice(0, 4) : [];
+  const buyer = /업체/.test(p.word) ? rot(BUYER, s, 'buy').slice(0, 4) : [];
 
   // 배차 동네 이름 (동 페이지 데이터에 있는 실제 행정동 이름). 구 페이지는 그 구의 동, 시 페이지는 시 전체 동
-  const nearList = rotate(
+  const nearList = rot(
     isDong ? dongsNear(p) : Array.from(new Set(ALL_PAGES.filter((x) => x.level === '동' && x.city === p.city && (!isGu || bare(x.gu || '').replace(/구$/, '') === bare(place).replace(/구$/, ''))).map((x) => x.region))),
     s, 'near').slice(0, 24).map(bare);
   // 시·구 페이지 동 단위 배차 문단 (동 페이지는 위 DONG 문단)
-  if (!isDong && nearList.length) intro.splice(2, 0, pick([
+  if (!isDong && nearList.length) intro.splice(2, 0, pk([
     `${place} 배차는 ${nearList.slice(0, 5).join('·')}처럼 동 단위로 위치를 받습니다. 동 이름과 공업사 이름을 같이 알려주시면 차를 둘 자리를 바로 정합니다.`,
     `${nearList.slice(0, 4).join('·')} 등 ${place} 어느 동에서 접수하든 같은 차급 기준과 같은 보험 처리 방식이 적용됩니다. 받는 곳은 공업사·집·직장 중에서 고르면 됩니다.`,
     `${place} 안에서도 동마다 공업사와 아파트 단지 위치가 달라 배차 장소를 먼저 여쭙니다. ${nearList.slice(0, 3).join('·')}처럼 동 이름을 말씀해 주시면 됩니다.`,
@@ -146,39 +149,39 @@ export function compose(p: Page) {
 
   // ---- 지역 ----
   const region = {
-    heading: pick([`${place} 배차 안내`, `${c.name} 어디로든 가져다 드립니다`, `${place}에서 사고가 나면`], s, 'rh'),
+    heading: pk([`${place} 배차 안내`, `${c.name} 어디로든 가져다 드립니다`, `${place}에서 사고가 나면`], s, 'rh'),
     body: isDong
-      ? `${pick([`${loc} ${bare(place)}`, `${bare(place)}과 주변`, `${gu || c.name} ${bare(place)} 일대`], s, 'dh')}부터 ${districts.length ? districts.join('·') : c.spots.join('·')}까지 같은 기준으로 배차합니다. ${pick([`${bare(place)} 공업사 입고 시간을 알려주시면 그 시간에 맞춰 차를 둡니다.`, `야간 사고는 다음 날 아침 입고에 맞춰 배차합니다.`, `${spot} 쪽 공업사로 입고하는 경우도 같은 날 배차합니다.`], s, 'db')}`
+      ? `${pk([`${loc} ${bare(place)}`, `${bare(place)}과 주변`, `${gu || c.name} ${bare(place)} 일대`], s, 'dh')}부터 ${districts.length ? districts.join('·') : c.spots.join('·')}까지 같은 기준으로 배차합니다. ${pk([`${bare(place)} 공업사 입고 시간을 알려주시면 그 시간에 맞춰 차를 둡니다.`, `야간 사고는 다음 날 아침 입고에 맞춰 배차합니다.`, `${spot} 쪽 공업사로 입고하는 경우도 같은 날 배차합니다.`], s, 'db')}`
       : districts.length
-      ? `${isGu ? `${j(place, '와')} 붙은 ` : `${c.name} 안에서는 `}${districts.join('·')}까지 같은 기준으로 배차합니다. ${pick([`${spot} 쪽은 출퇴근 시간대 접수가 많습니다.`, `공업사 위치를 알려주시면 입고 시간에 맞춰 차를 둡니다.`, `야간 사고는 다음 날 아침 공업사 입고에 맞춰 배차합니다.`], s, 'rb')}`
-      : pick([`${spot} 쪽 공업사 입고 시간에 맞춰 차를 둡니다. ${j(c.homes, '이')} 많아 집 앞 배차 요청도 잦습니다.`, `${c.name} 시내 어디든 공업사·집·직장으로 배차합니다. ${j(c.name, '은')} ${c.traits}.`, `${c.roads}. 고속도로 사고라도 공업사 입고 지점으로 차를 보냅니다.`], s, 'rb'),
-    extra: pick([
+      ? `${isGu ? `${j(place, '와')} 붙은 ` : `${c.name} 안에서는 `}${districts.join('·')}까지 같은 기준으로 배차합니다. ${pk([`${spot} 쪽은 출퇴근 시간대 접수가 많습니다.`, `공업사 위치를 알려주시면 입고 시간에 맞춰 차를 둡니다.`, `야간 사고는 다음 날 아침 공업사 입고에 맞춰 배차합니다.`], s, 'rb')}`
+      : pk([`${spot} 쪽 공업사 입고 시간에 맞춰 차를 둡니다. ${j(c.homes, '이')} 많아 집 앞 배차 요청도 잦습니다.`, `${c.name} 시내 어디든 공업사·집·직장으로 배차합니다. ${j(c.name, '은')} ${c.traits}.`, `${c.roads}. 고속도로 사고라도 공업사 입고 지점으로 차를 보냅니다.`], s, 'rb'),
+    extra: pk([
       `${j(c.name, '은')} ${j(c.homes, '이')} 섞인 곳이라, 아파트 지하주차장·상가 주차장·회사 주차장 어디로든 차를 둡니다. ${place}에서 출퇴근 차가 필요한 분은 전날 저녁 접수가 가장 안전합니다.`,
       `${c.traits}라 평일 낮 업무 차량 사고와 주말 가족 차량 사고가 모두 많습니다. 차급과 좌석 수를 접수 때 말씀해 주세요.`,
-      `${pick(c.spots, s, 'sp4')}에서 ${pick(c.spots.filter((x) => x !== pick(c.spots, s, 'sp4')), s, 'sp5')}까지 생활권이 넓어, 공업사와 집이 멀어도 원하는 쪽으로 배차합니다.`,
+      `${pk(c.spots, s, 'sp4')}에서 ${pk(c.spots.filter((x) => x !== pk(c.spots, s, 'sp4')), s, 'sp5')}까지 생활권이 넓어, 공업사와 집이 멀어도 원하는 쪽으로 배차합니다.`,
     ], s, 'rx'),
     dl: [...(isDong ? [['소속', loc]] : []), ...(nearList.length ? [['가까운 동네', nearList.join(', ')]] : []), ['주요 도로', c.roads], ['생활권', c.spots.join(', ')], ['배차 장소', '사고 현장 · 공업사 · 자택 · 직장'], ['접수', `${CONTACT.hours} · ${CONTACT.phone}`]] as [string, string][],
   };
 
   // ---- 차급 강조 ----
-  const classOn = t === 'import' || t === 'importRent' ? ['imp', 'impL'] : pick([['mid', 'large'], ['small', 'mid'], ['suv', 'large']], s, 'cls');
-  const classRows = [...classOn, ...rotate(CLASSES.map((x) => x.key).filter((k) => !classOn.includes(k)), s, 'clr').slice(0, 1)];
+  const classOn = t === 'import' || t === 'importRent' ? ['imp', 'impL'] : pk([['mid', 'large'], ['small', 'mid'], ['suv', 'large']], s, 'cls');
+  const classRows = [...classOn, ...rot(CLASSES.map((x) => x.key).filter((k) => !classOn.includes(k)), s, 'clr').slice(0, 1)];
 
   // ---- 절차 ----
   const steps = [
-    { t: pick(['사고 접수', '보험 접수'], s, 'tt1'), d: pick(['상대 보험사에 사고 접수를 하고 접수번호를 받아 둡니다.', '현장에서 보험사를 부르고, 상대 보험 접수번호를 받아 둡니다.', `상대 운전자에게 보험 접수를 요청합니다. ${place} 현장 사진과 블랙박스 영상은 따로 저장해 둡니다.`, '접수번호는 상대 보험사 문자로 옵니다. 이 번호가 대차 계약의 기준이 됩니다.'], s, 'st1') },
-    { t: pick(['대차 신청', '대차 요청'], s, 'tt2'), d: pick([`차를 받을 날짜와 장소, 사고 차량 차급을 알려주시면 배차 일정을 잡습니다.`, `${CONTACT.phone}로 차급·공업사 위치·필요한 날을 알려주세요. ${OFFER.free[1] ?? ''}`.trim(), `사고 차량 차종과 ${place} 공업사 이름을 말씀해 주세요.`, `문자(${CONTACT.sms})로 접수번호와 차종을 보내셔도 됩니다.`], s, 'st2') },
-    { t: pick(['배차', '차량 인도'], s, 'tt3'), d: pick([`${place} 공업사나 집으로 같은 급 차를 가져다 드립니다. ${OFFER.free[0] ?? ''}`, `입고 시간에 맞춰 ${spot} 쪽 공업사로 차를 둡니다.`, `차를 받을 때 외관·연료·계기판을 같이 확인하고 사진을 남깁니다.`, `${c.name} 안이라면 집·직장·공업사 중 원하는 곳에서 차를 넘겨 드립니다.`], s, 'st3') },
-    { t: pick(['수리 기간 이용', '수리 동안 운행'], s, 'tt4'), d: pick([`운행 중 문제가 생기면 같은 번호(${CONTACT.phone})로 연락하시면 됩니다. 기간은 공업사 수리 완료일까지입니다.`, `수리가 끝날 때까지 씁니다. 수리가 길어지면 공업사·보험사와 기간을 함께 맞춥니다.`, `${place} 공업사 수리 일정이 대차 기간입니다. 연장이 필요하면 미리 알려주세요.`, `출퇴근·${spot} 이동 그대로 쓰시면 됩니다. 기간은 수리 완료일까지입니다.`], s, 'st4') },
-    { t: pick(['반납·정산', '회수·청구'], s, 'tt5'), d: pick([`공업사에서 수리 완료를 알리면 반납 날짜를 정합니다. 렌트비는 보험사와 정산하고 고객 결제는 없습니다(무과실 기준).`, `내 차를 찾으러 가는 길에 대차를 반납하면 됩니다. 쌍방 과실이면 내 과실분만 따로 안내합니다.`, `수리 완료 날 차를 회수합니다. 무과실이면 렌트비는 보험사로 청구되어 고객 부담이 없습니다.`, `${place} 공업사에서 내 차를 찾는 날 대차를 같은 자리에서 회수합니다.`, `반납은 공업사·자택 중 편한 곳에서 합니다. 정산은 보험사와 직접 합니다.`], s, 'st5') },
+    { t: pk(['사고 접수', '보험 접수'], s, 'tt1'), d: pk(['상대 보험사에 사고 접수를 하고 접수번호를 받아 둡니다.', '현장에서 보험사를 부르고, 상대 보험 접수번호를 받아 둡니다.', `상대 운전자에게 보험 접수를 요청합니다. ${place} 현장 사진과 블랙박스 영상은 따로 저장해 둡니다.`, '접수번호는 상대 보험사 문자로 옵니다. 이 번호가 대차 계약의 기준이 됩니다.'], s, 'st1') },
+    { t: pk(['대차 신청', '대차 요청'], s, 'tt2'), d: pk([`차를 받을 날짜와 장소, 사고 차량 차급을 알려주시면 배차 일정을 잡습니다.`, `${CONTACT.phone}로 차급·공업사 위치·필요한 날을 알려주세요. ${OFFER.free[1] ?? ''}`.trim(), `사고 차량 차종과 ${place} 공업사 이름을 말씀해 주세요.`, `문자(${CONTACT.sms})로 접수번호와 차종을 보내셔도 됩니다.`], s, 'st2') },
+    { t: pk(['배차', '차량 인도'], s, 'tt3'), d: pk([`${place} 공업사나 집으로 같은 급 차를 가져다 드립니다. ${OFFER.free[0] ?? ''}`, `입고 시간에 맞춰 ${spot} 쪽 공업사로 차를 둡니다.`, `차를 받을 때 외관·연료·계기판을 같이 확인하고 사진을 남깁니다.`, `${c.name} 안이라면 집·직장·공업사 중 원하는 곳에서 차를 넘겨 드립니다.`], s, 'st3') },
+    { t: pk(['수리 기간 이용', '수리 동안 운행'], s, 'tt4'), d: pk([`운행 중 문제가 생기면 같은 번호(${CONTACT.phone})로 연락하시면 됩니다. 기간은 공업사 수리 완료일까지입니다.`, `수리가 끝날 때까지 씁니다. 수리가 길어지면 공업사·보험사와 기간을 함께 맞춥니다.`, `${place} 공업사 수리 일정이 대차 기간입니다. 연장이 필요하면 미리 알려주세요.`, `출퇴근·${spot} 이동 그대로 쓰시면 됩니다. 기간은 수리 완료일까지입니다.`], s, 'st4') },
+    { t: pk(['반납·정산', '회수·청구'], s, 'tt5'), d: pk([`공업사에서 수리 완료를 알리면 반납 날짜를 정합니다. 렌트비는 보험사와 정산하고 고객 결제는 없습니다(무과실 기준).`, `내 차를 찾으러 가는 길에 대차를 반납하면 됩니다. 쌍방 과실이면 내 과실분만 따로 안내합니다.`, `수리 완료 날 차를 회수합니다. 무과실이면 렌트비는 보험사로 청구되어 고객 부담이 없습니다.`, `${place} 공업사에서 내 차를 찾는 날 대차를 같은 자리에서 회수합니다.`, `반납은 공업사·자택 중 편한 곳에서 합니다. 정산은 보험사와 직접 합니다.`], s, 'st5') },
   ];
 
   // ---- 확인할 것 / 놓치는 점 ----
-  const checks = rotate([
+  const checks = rot([
     '상대 보험사 사고 접수번호', '사고 차량의 차종·연식(동급 기준)', '공업사 이름과 입고 날짜', '과실 비율이 확정됐는지', '운전자 나이·면허 경력(보험 조건)',
     '블랙박스 영상 보관 여부', `배차 받을 곳(${place} 공업사·집·직장)`, '대차를 쓸 운전자 이름과 연락처', '상대 보험사 담당자 연락처',
   ], s, 'chk').slice(0, 3);
-  const pitfalls = rotate([
+  const pitfalls = rot([
     '과실 비율이 정해지기 전에 상위 차종을 받으면 차액이 생길 수 있습니다.',
     '내 과실이 있으면 렌트비 중 내 과실분은 본인 부담이 될 수 있습니다.',
     `수리 완료 뒤에도 차를 계속 쓰면 그 기간은 보험 처리가 되지 않습니다. ${place} 공업사 완료 연락을 받으면 바로 반납하세요.`,
@@ -226,29 +229,29 @@ export function compose(p: Page) {
   };
   const regionFaq = [
     { q: `${place}까지 배차되나요?`, a: `${isDong ? `${loc} ${bare(place)}을 포함해 ` : ''}${c.name} 전역으로 배차합니다. ${districts.length ? districts.join('·') + '도 같은 기준입니다.' : ''} ${CONTACT.hours}입니다.`.replace('  ', ' ') },
-    { q: pick(['사고 접수번호가 아직 없어요.', `${place}에서 방금 사고가 났어요.`], s, 'fq2'), a: pick(['상대 보험사에 사고 접수를 먼저 하면 접수번호가 나옵니다. 번호가 나오기 전이라도 전화 주시면 순서를 안내합니다.', `현장에서 상대 보험사 접수를 요청하고 블랙박스를 보관하세요. 공업사가 정해지면 ${c.name} 어디든 배차합니다.`], s, 'fa2') },
+    { q: pk(['사고 접수번호가 아직 없어요.', `${place}에서 방금 사고가 났어요.`], s, 'fq2'), a: pk(['상대 보험사에 사고 접수를 먼저 하면 접수번호가 나옵니다. 번호가 나오기 전이라도 전화 주시면 순서를 안내합니다.', `현장에서 상대 보험사 접수를 요청하고 블랙박스를 보관하세요. 공업사가 정해지면 ${c.name} 어디든 배차합니다.`], s, 'fa2') },
   ];
-  const faq = rotate([pick(regionFaq, s, 'rfq'), ...rotate(bank[t], s, 'bank').slice(0, 3)], s, 'faq');
+  const faq = rot([pk(regionFaq, s, 'rfq'), ...rot(bank[t], s, 'bank').slice(0, 3)], s, 'faq');
 
   return {
     // 차급·절차·사고 유형·준비할 것 네 블록 중 두 개만 싣는다(슬러그 해시로 고정) — 페이지마다 구성이 달라지게
     // 동 데이터가 없는 곳(옥천·동탄구)은 본문이 짧아지지 않게 한 블록 더
-    blocks: ((x: string[]) => (nearList.length >= 3 || x.length > 2 ? x : Array.from(new Set([...x, 'steps', 'cases'])).slice(0, 3)))(pick([['class', 'steps', 'checks'], ['class', 'cases'], ['steps', 'cases'], ['steps', 'checks'], ['cases', 'checks']], s, 'blocks')),
+    blocks: ((x: string[]) => (nearList.length >= 3 || x.length > 2 ? x : Array.from(new Set([...x, 'steps', 'cases'])).slice(0, 3)))(pk([['class', 'steps', 'checks'], ['class', 'cases'], ['steps', 'cases'], ['steps', 'checks'], ['cases', 'checks']], s, 'blocks')),
     topic: t, city: c, classRows, title,
     subs: {
-      fault: pick(['막대를 움직여 보세요. 금액이 아니라 렌트비를 나누는 비율입니다.', '내 과실 비율을 옮기면 상대 보험사와 본인 몫이 나뉩니다. 금액이 아닌 비율입니다.', `${place} 사고도 같은 계산입니다. 비율만 보여 주며 금액은 보험사가 정합니다.`], s, 'sf'),
-      cls: pick(['사고 차량과 같은 급이 기준입니다. 아래는 차급 예시이며 실제 배차 차종은 접수 때 안내합니다.', '차급 예시입니다. 실제 배차 차종은 사고 차량 정보를 받고 정합니다.', `${label} 배차는 사고 차량 차급을 따릅니다. 표의 차종은 예시입니다.`], s, 'sc'),
-      photo: pick(['세단·SUV·수입차가 도로와 공업사를 오가는 장면입니다. 참고 이미지이며 실제 배차 차량과 다를 수 있습니다.', '도로·주차장·공업사 장면을 모은 참고 이미지입니다. 실제 배차 차량과 다를 수 있습니다.'], s, 'sph'),
+      fault: pk(['막대를 움직여 보세요. 금액이 아니라 렌트비를 나누는 비율입니다.', '내 과실 비율을 옮기면 상대 보험사와 본인 몫이 나뉩니다. 금액이 아닌 비율입니다.', `${place} 사고도 같은 계산입니다. 비율만 보여 주며 금액은 보험사가 정합니다.`], s, 'sf'),
+      cls: pk(['사고 차량과 같은 급이 기준입니다. 아래는 차급 예시이며 실제 배차 차종은 접수 때 안내합니다.', '차급 예시입니다. 실제 배차 차종은 사고 차량 정보를 받고 정합니다.', `${label} 배차는 사고 차량 차급을 따릅니다. 표의 차종은 예시입니다.`], s, 'sc'),
+      photo: pk(['세단·SUV·수입차가 도로와 공업사를 오가는 장면입니다. 참고 이미지이며 실제 배차 차량과 다를 수 있습니다.', '도로·주차장·공업사 장면을 모은 참고 이미지입니다. 실제 배차 차량과 다를 수 있습니다.'], s, 'sph'),
     }, description, lead, intro, region, classOn, steps, checks, pitfalls, faq, cases, buyer,
-    faultNote: pick([`상대 과실 100%면 렌트비는 상대 보험사 대물배상에서 나갑니다. 내 과실이 20%라면 렌트비의 20%가 내 몫이 되는 식입니다.`, `${c.name} 사고든 다른 지역 사고든 비율 계산은 같습니다. 상대 몫은 상대 보험사, 내 몫은 본인 부담으로 나뉩니다.`, `쌍방 과실이면 렌트비도 과실 비율대로 나뉩니다. 막대를 옮겨 내 몫이 어느 정도인지 먼저 보세요.`, `과실 0%면 렌트비 전액을 상대 보험사로 청구해 고객 부담 0원입니다. 쌍방 과실이면 내 과실만큼 본인 부담이 생길 수 있습니다.`, `${place} 사고도 기준은 같습니다. 상대 과실 100%면 0원, 내 과실이 있으면 그 비율만큼 부담이 생길 수 있습니다.`, `과실 비율은 보험사가 정합니다. ${label} 접수 때 예상 비율을 먼저 듣고 차급을 정하는 것이 안전합니다.`], s, 'fn'),
-    casesHeading: pick([`${place}에서 많은 사고 유형`, '사고 유형별로 다릅니다', '내 사고는 어디에 해당하나요'], s, 'csh'),
+    faultNote: pk([`상대 과실 100%면 렌트비는 상대 보험사 대물배상에서 나갑니다. 내 과실이 20%라면 렌트비의 20%가 내 몫이 되는 식입니다.`, `${c.name} 사고든 다른 지역 사고든 비율 계산은 같습니다. 상대 몫은 상대 보험사, 내 몫은 본인 부담으로 나뉩니다.`, `쌍방 과실이면 렌트비도 과실 비율대로 나뉩니다. 막대를 옮겨 내 몫이 어느 정도인지 먼저 보세요.`, `과실 0%면 렌트비 전액을 상대 보험사로 청구해 고객 부담 0원입니다. 쌍방 과실이면 내 과실만큼 본인 부담이 생길 수 있습니다.`, `${place} 사고도 기준은 같습니다. 상대 과실 100%면 0원, 내 과실이 있으면 그 비율만큼 부담이 생길 수 있습니다.`, `과실 비율은 보험사가 정합니다. ${label} 접수 때 예상 비율을 먼저 듣고 차급을 정하는 것이 안전합니다.`], s, 'fn'),
+    casesHeading: pk([`${place}에서 많은 사고 유형`, '사고 유형별로 다릅니다', '내 사고는 어디에 해당하나요'], s, 'csh'),
     eyebrow: `${c.name}${isGu ? ` · ${place}` : isDong ? `${gu ? ` · ${gu}` : ''} · ${bare(place)}` : ''}`,
-    specs: [['지역', isGu ? `${c.name} ${place}` : isDong ? `${loc} ${bare(place)}` : c.name], [pick(['배차 기준', '차급'], s, 'spk'), t === 'import' || t === 'importRent' ? pick(['수입차 동급', '수입차 같은 급'], s, 'spv') : pick(['사고 차량 동급', '사고 차량과 같은 급'], s, 'spv')], ['접수', CONTACT.hours]] as [string, string][],
-    faultHeading: pick([`${place}, 내 과실 비율로 보는 부담`, '과실 비율에 따라 달라집니다', '렌트비는 누가 내나요'], s, 'fh'),
-    classHeading: pick([`${label} 차급 기준`, '같은 급으로 나갑니다', '어떤 차가 나오나요'], s, 'ch'),
+    specs: [['지역', isGu ? `${c.name} ${place}` : isDong ? `${loc} ${bare(place)}` : c.name], [pk(['배차 기준', '차급'], s, 'spk'), t === 'import' || t === 'importRent' ? pk(['수입차 동급', '수입차 같은 급'], s, 'spv') : pk(['사고 차량 동급', '사고 차량과 같은 급'], s, 'spv')], ['접수', CONTACT.hours]] as [string, string][],
+    faultHeading: pk([`${place}, 내 과실 비율로 보는 부담`, '과실 비율에 따라 달라집니다', '렌트비는 누가 내나요'], s, 'fh'),
+    classHeading: pk([`${label} 차급 기준`, '같은 급으로 나갑니다', '어떤 차가 나오나요'], s, 'ch'),
     closing: {
-      heading: pick([`${place} ${label} 접수`, `사고 접수번호가 있다면 지금`, `${c.name} 배차 상담`], s, 'cl'),
-      text: pick([`상대 보험 접수번호와 공업사 위치만 알려주세요. ${OFFER.zero}.`, `${CONTACT.hours}입니다. 차급과 필요한 날을 말씀해 주시면 바로 배차 일정을 잡습니다.`, `과실 비율이 애매하면 접수 때 먼저 확인해 드립니다. 문자 ${CONTACT.sms}.`, `${place} 공업사 이름과 입고 날짜를 알려주시면 그날에 맞춰 차를 둡니다.`, `사고 차량 차종을 알려주시면 동급 범위부터 정리해 드립니다. 전화 ${CONTACT.phone}.`], s, 'ct'),
+      heading: pk([`${place} ${label} 접수`, `사고 접수번호가 있다면 지금`, `${c.name} 배차 상담`], s, 'cl'),
+      text: pk([`상대 보험 접수번호와 공업사 위치만 알려주세요. ${OFFER.zero}.`, `${CONTACT.hours}입니다. 차급과 필요한 날을 말씀해 주시면 바로 배차 일정을 잡습니다.`, `과실 비율이 애매하면 접수 때 먼저 확인해 드립니다. 문자 ${CONTACT.sms}.`, `${place} 공업사 이름과 입고 날짜를 알려주시면 그날에 맞춰 차를 둡니다.`, `사고 차량 차종을 알려주시면 동급 범위부터 정리해 드립니다. 전화 ${CONTACT.phone}.`], s, 'ct'),
     },
   };
 }

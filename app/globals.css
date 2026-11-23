@@ -340,3 +340,20 @@ h1, h2, h3 { letter-spacing: -0.035em; font-weight: 800; }
   .js [data-reveal], .js .reveal-group > * { opacity: 1; transform: none; }
   .js .sh::before, .js .sh::after { transform: none; } .timeline::after { width: 100% !important; }
 }
+
+/* ---------- 키워드 페이지: h1 수식어 · 레이 구조 (2026-11-24) ---------- */
+.ray-cat { margin: 0 0 14px; font-size: .84rem; font-weight: 700; color: var(--amber); letter-spacing: .02em; }
+.hero-title .hero-sub { font-weight: 600; font-size: .46em; line-height: 1.4; letter-spacing: -0.02em; margin-top: 12px; color: rgba(255,255,255,.8); }
+.ray-sum { margin: 48px 0 0; padding: 28px 30px; border: 1px solid var(--line); border-top: 4px solid var(--amber); background: #fff; }
+.ray-sum h2 { margin: 0 0 10px; font-size: .95rem; font-weight: 800; color: var(--amber-2); }
+.ray-sum > p { margin: 0 0 18px; font-size: 1.06rem; font-weight: 600; line-height: 1.8; }
+.ray-sum .info div { grid-template-columns: 110px 1fr; }
+.ray { max-width: 780px; padding: 32px 0 8px; }
+.ray section { padding: 32px 0 8px; border-top: 1px solid var(--line); }
+.ray section:first-child { border-top: 0; }
+.ray h2 { display: flex; align-items: baseline; gap: 14px; margin: 0 0 14px; font-size: clamp(1.2rem, 2.4vw, 1.5rem); line-height: 1.4; letter-spacing: -0.03em; font-weight: 800; }
+.ray h2 span { flex: none; font-size: .78rem; font-weight: 700; color: var(--amber-2); font-variant-numeric: tabular-nums; }
+.ray p { margin: 0 0 16px; font-size: 1.05rem; line-height: 1.9; color: #263240; }
+.ray-h { margin: 0 0 24px; font-size: clamp(1.35rem, 3vw, 1.9rem); line-height: 1.3; letter-spacing: -0.035em; font-weight: 800; }
+.ray-note { margin: 14px 0 0; font-size: .86rem; color: var(--muted-dark); }
+@media (max-width: 560px) { .ray-sum { padding: 22px 18px; } }
