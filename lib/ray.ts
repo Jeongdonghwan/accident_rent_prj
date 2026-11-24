@@ -30,6 +30,9 @@ const fitSub = (kw: string, arr: string[], seed: string) => {
   return words.join(' ').replace(/[,·]$/, '');
 };
 
+// title 전체 40자 이하(네이버 권장): 상호를 붙여 40자를 넘으면 상호를 뺀다. 앞부분은 항상 h1 과 같다
+const titleOf = (kw: string, sub: string) => (`${kw} ${sub} | ${BRAND}`.length <= 40 ? `${kw} ${sub} | ${BRAND}` : `${kw} ${sub}`);
+
 export function composeRay(p: Page) {
   const c = compose(p, true);
   const used = new Set<string>(); // 한 페이지 안에서 같은 문장 두 번 쓰지 않기
@@ -127,5 +130,5 @@ export function composeRay(p: Page) {
   const faq = [...c.faq.filter((f) => f.a.includes(C.name) || f.a.includes(short)), ...c.faq.filter((f) => !f.a.includes(C.name) && !f.a.includes(short)).slice(0, 2)];
 
   // title 은 기존 그대로(compose 기본 모드 — alt 모드는 spot 고르는 해시가 달라 title 이 바뀐다)
-  return { ...c, title: `${kw} ${h1sub} | ${BRAND}`, h1sub, cat, summaryText: summary, facts, sections, description, faq };
+  return { ...c, title: titleOf(kw, h1sub), h1sub, cat, summaryText: summary, facts, sections, description, faq };
 }
