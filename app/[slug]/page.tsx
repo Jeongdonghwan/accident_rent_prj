@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { OPEN_PAGES, getPage, pagePath, pageEncodedPath, canonicalPath, related } from '../../lib/data';
 import { composeRay } from '../../lib/ray';
+import { BRAND } from '../../lib/site';
 import { breadcrumbJsonLd, faqJsonLd, itemListJsonLd, ogImages, serviceJsonLd } from '../../lib/jsonld';
 import { Actions, FixedLinks, HeroShot, IconArrow, JsonLd, PhotoRail } from '../../components/Common';
 import { heroPhoto, railPhotos } from '../../lib/photos';
@@ -16,7 +17,7 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   const c = composeRay(p);
   const url = canonicalPath(p);
   const images = ogImages(p.variantOf || p.slug, p.kw);
-  return { title: c.title, description: c.description, alternates: { canonical: url }, openGraph: { title: c.title, description: c.description, url, images }, twitter: { card: 'summary_large_image', title: c.title, description: c.description, images } };
+  return { title: c.title, description: c.description, alternates: { canonical: url }, openGraph: { type: 'website', siteName: BRAND, locale: 'ko_KR', title: c.title, description: c.description, url, images }, twitter: { card: 'summary_large_image', title: c.title, description: c.description, images } };
 }
 
 export default function KeywordPage({ params }: { params: { slug: string } }) {

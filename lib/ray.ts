@@ -4,7 +4,7 @@
 // 0원 표현은 OFFER.zero(무과실 조건이 든 문구)로만 쓴다. OFFER.free(확인 전)는 쓰지 않는다.
 import { Page, hash, related } from './data';
 import { compose, CLASSES } from './compose';
-import { CONTACT, OFFER } from './site';
+import { BRAND, CONTACT, OFFER } from './site';
 import { j } from './ko';
 
 // FNV 아랫비트는 슬러그 끝 글자에 따라 같이 움직여 윗비트로 고른다
@@ -18,6 +18,17 @@ const paraAll = (list: string[], max = 268) => {
   return out.replace(/\s+/g, ' ');
 };
 const TOPIC_CAT: Record<string, string> = { accident: '사고 대차', import: '수입차 사고 대차', importRent: '수입차 렌트', rent: '렌트카' };
+
+// h1 수식어: "키워드 수식어"가 40자를 넘지 않는 벌을 해시 순서로 고르고, 다 넘으면 구 단위로 자른다 (title 앞부분 = h1)
+const fitSub = (kw: string, arr: string[], seed: string) => {
+  const k = hi(`${seed}::h1sub`) % arr.length;
+  const order = [...arr.slice(k), ...arr.slice(0, k)];
+  const ok = order.find((x) => kw.length + 1 + x.length <= 40);
+  if (ok) return ok;
+  const words = order[0].split(' ');
+  while (words.length > 1 && kw.length + 1 + words.join(' ').length > 40) words.pop();
+  return words.join(' ').replace(/[,·]$/, '');
+};
 
 export function composeRay(p: Page) {
   const c = compose(p, true);
@@ -33,12 +44,12 @@ export function composeRay(p: Page) {
   const sp = sp0.length ? sp0 : C.spots;
   const imp = t === 'import' || t === 'importRent';
 
-  const h1sub = pick({
+  const h1sub = fitSub(kw, {
     accident: [`${sp[0]} 공업사·집 앞 동급 배차`, '상대 보험 접수번호로 시작하는 대차', '과실 비율부터 보는 수리 기간 대차', '접수부터 반납까지 다섯 단계'],
     import: [`${sp[0]} 공업사까지 수입차 동급 배차`, '부품 대기까지 보는 수리 기간 대차', '차급·배기량으로 맞추는 동급 기준'],
     importRent: ['사고 대차와 단기 렌트 나눠 보기', `${sp[0]} 쪽 배차와 보험 조건`, '면책금·운전자 조건부터 확인'],
     rent: ['사고 대차인지 일반 렌트인지부터', `${sp[0]} 쪽 공업사·집 앞 배차`, '과실 비율과 차급으로 정하는 대차'],
-  }[t], s, 'h1sub');
+  }[t], s);
 
   const cat = `${c.eyebrow} · ${TOPIC_CAT[t]}`;
 
@@ -116,5 +127,5 @@ export function composeRay(p: Page) {
   const faq = [...c.faq.filter((f) => f.a.includes(C.name) || f.a.includes(short)), ...c.faq.filter((f) => !f.a.includes(C.name) && !f.a.includes(short)).slice(0, 2)];
 
   // title 은 기존 그대로(compose 기본 모드 — alt 모드는 spot 고르는 해시가 달라 title 이 바뀐다)
-  return { ...c, title: compose(p).title, h1sub, cat, summaryText: summary, facts, sections, description, faq };
+  return { ...c, title: `${kw} ${h1sub} | ${BRAND}`, h1sub, cat, summaryText: summary, facts, sections, description, faq };
 }

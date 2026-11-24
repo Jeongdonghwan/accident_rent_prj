@@ -57,3 +57,7 @@ console.log(`description 길이 ${Math.min(...dl)}~${Math.max(...dl)}자 · 45~8
 console.log('예 description:', get(pages[0]).c.description, '/', get(pages[700]).c.description);
 const bySec = [0, 1, 2, 3, 4, 5].map((i) => pages.filter((p) => get(p).c.sections[i].p.length < 200).length);
 console.log('절별 200자 미만 페이지 수', bySec.join('/'));
+// title = "{키워드} {h1 수식어} | 상호": 중복 0, 앞부분 == h1 글자, 전체 60자 이하·앞부분 40자 이하
+const tl = pages.map((p) => get(p).c.title); const head = pages.map((p) => `${p.kw} ${get(p).c.h1sub}`);
+console.log(`title 중복 ${tl.length - new Set(tl).size} · 길이 ${Math.min(...tl.map((x) => x.length))}~${Math.max(...tl.map((x) => x.length))}자 · 60자 초과 ${tl.filter((x) => x.length > 60).length} · 앞부분 40자 초과 ${head.filter((x) => x.length > 40).length} · h1 불일치 ${tl.filter((x, i) => x !== `${head[i]} | ${BRAND}`).length}`);
+console.log('예 title:', tl[0], '/', tl[Math.floor(tl.length / 2)]);
